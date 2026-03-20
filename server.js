@@ -4,7 +4,6 @@ import cors from "cors";
 
 const app = express();
 
-// cho phép gọi từ Ladipage và GitHub Pages
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
@@ -12,9 +11,7 @@ app.post("/chat", async (req, res) => {
   try {
     const message = req.body.message;
 
-    // kiểm tra API key
     if (!process.env.OPENROUTER_API_KEY) {
-      console.error("❌ OPENROUTER_API_KEY is missing");
       return res.status(500).json({
         error: { message: "Server missing API key" }
       });
@@ -25,28 +22,23 @@ app.post("/chat", async (req, res) => {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json"
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://khoindce200286-jpg.github.io",
+          "X-Title": "My Chatbot"
         },
         body: JSON.stringify({
-          // model free thường hoạt động
-          model: "openrouter/cinematika-7b:free",
+          model: "mistralai/mistral-7b-instruct",
           messages: [
-            {
-              role: "user",
-              content: message
-            }
+            { role: "user", content: message }
           ]
         })
       }
     );
 
     const data = await response.json();
+    console.log("OpenRouter:", JSON.stringify(data, null, 2));
 
-    // log để debug trên Render
-    console.log("OpenRouter response:", JSON.stringify(data, null, 2));
-
-    // nếu OpenRouter trả lỗi → trả lỗi ra frontend
     if (data.error) {
       return res.status(400).json(data);
     }
@@ -54,13 +46,9 @@ app.post("/chat", async (req, res) => {
     res.json(data);
 
   } catch (err) {
-    console.error("Server crashed:", err);
-    res.status(500).json({
-      error: { message: "Server crashed" }
-    });
+    console.error(err);
+    res.status(500).json({ error: { message: "Server crashed" } });
   }
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Server running on port", process.env.PORT || 3000);
-});
+app.listen(process.env.PORT || 3000);
