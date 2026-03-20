@@ -3,33 +3,34 @@ import cors from "cors";
 import fetch from "node-fetch";
 
 const app = express();
-app.use(cors());
+
+// 🔥 FIX CORS
+app.use(cors({
+    origin: "*"
+}));
+
 app.use(express.json());
+
+// test route
+app.get("/", (req, res) => {
+    res.send("Server is running 🚀");
+});
 
 app.post("/chat", async (req, res) => {
     try {
         const userMessage = req.body.message;
 
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Authorization": "Bearer " + process.env.OPENAI_API_KEY,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                model: "gpt-4.1-mini",
+                model: "mistralai/mistral-7b-instruct:free",
                 messages: [
-                    {
-                        role: "system",
-                        content: `
-You are a professional programming tutor.
-Explain clearly, fix code, give examples.
-                        `
-                    },
-                    {
-                        role: "user",
-                        content: userMessage
-                    }
+                    { role: "system", content: "You are a coding tutor." },
+                    { role: "user", content: userMessage }
                 ]
             })
         });
@@ -38,8 +39,11 @@ Explain clearly, fix code, give examples.
         res.json(data);
 
     } catch (err) {
+        console.log(err);
         res.status(500).json({ error: "Server error" });
     }
 });
 
-app.listen(3000, () => console.log("Server running"));
+// 🔥 PORT FIX
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running on " + PORT));
