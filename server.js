@@ -28,7 +28,7 @@ app.post("/chat", async (req, res) => {
           "X-Title": "My Chatbot"
         },
         body: JSON.stringify({
-          model: "mistralai/mistral-7b-instruct",
+          model: "google/gemma-2-9b-it:free",
           messages: [
             { role: "user", content: message }
           ]
